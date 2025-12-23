@@ -397,6 +397,9 @@
                 }
             };
             reader.readAsDataURL(file);
+            
+            // --- A CORREÇÃO ESTÁ AQUI EMBAIXO ---
+            input.value = ''; // Reseta o campo para permitir novo upload imediato
         }
     }
 
