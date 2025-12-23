@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CIA - Consultora IA</title>
+    <title>CIA - Search Engine</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        /* --- DESIGN SYSTEM (Baseado na Ref. Visual) --- */
+        /* --- DESIGN SYSTEM PREMIUM --- */
         :root {
-            --bg-gradient: linear-gradient(135deg, #1a0b2e 0%, #000000 100%);
-            --card-bg: rgba(255, 255, 255, 0.05);
-            --card-border: 1px solid rgba(255, 255, 255, 0.1);
-            --primary-gradient: linear-gradient(90deg, #FF007F 0%, #bd00ff 100%); /* Rosa/Roxo */
+            --bg-gradient: linear-gradient(180deg, #0a0a0a 0%, #1a0b2e 100%);
+            --input-bg: #1c1c1e;
+            --primary-gradient: linear-gradient(90deg, #FF007F 0%, #bd00ff 100%);
             --text-main: #FFFFFF;
-            --text-sec: #B0B0B0;
-            --success: #00E676;
-            --radius: 16px;
+            --text-sec: #8E8E93;
+            --border-color: rgba(255, 255, 255, 0.1);
         }
 
         body {
@@ -23,450 +21,405 @@
             color: var(--text-main);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             margin: 0;
-            padding: 0; /* Remove padding global para usar area total */
-            min-height: 100vh;
+            padding: 0;
+            height: 100vh;
             display: flex;
             flex-direction: column;
-            overflow-x: hidden;
+            overflow: hidden; /* Evita scroll na página inteira */
         }
 
-        /* CABEÇALHO */
-        header {
-            padding: 20px;
-            text-align: center;
-            background: rgba(0,0,0,0.3);
+        /* --- TOPO FIXO (Header + Input) --- */
+        .top-fixed-area {
+            background: rgba(10, 10, 10, 0.95);
             backdrop-filter: blur(10px);
-            border-bottom: var(--card-border);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            padding: 15px 20px 20px 20px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
+            z-index: 100;
         }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
         .brand {
-            font-size: 18px;
+            font-size: 14px;
             font-weight: 700;
             letter-spacing: 1px;
             text-transform: uppercase;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #BB86FC;
         }
 
-        /* CONTAINERS */
-        .container {
-            padding: 20px;
-            flex: 1; /* Empurra o footer pra baixo */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+        .logout-btn {
+            background: none;
+            border: none;
+            color: var(--text-sec);
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
         }
 
-        /* TELAS */
-        #login-screen, #app-screen { display: none; width: 100%; max-width: 500px; margin: 0 auto; }
+        /* --- BARRA DE PESQUISA UNIFICADA --- */
+        .search-container {
+            position: relative;
+            width: 100%;
+        }
 
-        /* INPUTS */
-        .input-group { position: relative; margin-bottom: 15px; }
-        .input-box {
-            background: var(--card-bg);
-            border: var(--card-border);
+        .search-box {
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 100px 12px 15px; /* Espaço na direita para ícones */
             color: white;
-            padding: 16px;
-            border-radius: var(--radius);
+            font-size: 16px;
             width: 100%;
             box-sizing: border-box;
-            font-size: 16px;
             outline: none;
-            transition: 0.3s;
+            transition: border-color 0.3s;
         }
-        .input-box:focus { border-color: #FF007F; }
+        .search-box:focus { border-color: #bd00ff; }
 
-        /* BOTÕES */
-        .btn {
-            background: var(--primary-gradient);
-            color: white;
+        /* Ícones dentro da barra (Direita) */
+        .input-icons {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .icon-btn {
+            background: transparent;
             border: none;
-            padding: 16px;
-            border-radius: var(--radius);
-            width: 100%;
-            font-weight: 600;
-            font-size: 16px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
-            transition: transform 0.2s;
-            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-        }
-        .btn:active { transform: scale(0.98); }
-        
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.3);
-            box-shadow: none;
-        }
-        .btn-text {
-            background: transparent;
-            box-shadow: none;
             color: var(--text-sec);
-            font-size: 14px;
-            padding: 10px;
+            transition: 0.2s;
+        }
+        .icon-btn svg { width: 22px; height: 22px; fill: currentColor; }
+        
+        .icon-btn.active { color: #FF007F; background: rgba(255, 0, 127, 0.1); }
+        .icon-btn.recording { color: #FF0000; animation: pulse 1.5s infinite; }
+
+        .send-btn {
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
         }
 
-        /* ÁREA DE CHAT / TEXTO */
-        .chat-area {
-            margin-top: 20px;
-        }
-        .chat-bubble {
-            background: rgba(255,255,255,0.08);
+        /* --- ÁREA DE CONTEÚDO (Scrollável) --- */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
             padding: 20px;
-            border-radius: var(--radius);
-            border: var(--card-border);
+            position: relative;
+        }
+
+        /* Dicas (Estado Vazio) */
+        #tips-placeholder {
+            text-align: center;
+            color: var(--text-sec);
+            margin-top: 40px;
+            animation: fadeIn 0.5s ease;
+        }
+        .tip-title { color: #fff; font-size: 16px; margin-bottom: 10px; font-weight: 600; }
+        .tip-text { font-size: 14px; line-height: 1.6; max-width: 300px; margin: 0 auto; }
+        .tip-highlight { color: #BB86FC; }
+
+        /* Resultado (Chat) */
+        .chat-bubble {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 12px;
             line-height: 1.6;
             font-size: 15px;
             color: #E0E0E0;
-            white-space: pre-wrap; /* Respeita quebras de linha */
-            margin-bottom: 20px;
-            animation: fadeIn 0.5s ease;
+            white-space: pre-wrap;
+            display: none; /* Escondido até ter resposta */
         }
-        /* Markdown simples styling */
-        .chat-bubble strong { color: #FF007F; font-weight: 700; }
+        .chat-bubble strong { color: #FF007F; }
+
+        /* Indicador de arquivo anexado */
+        #attachment-indicator {
+            display: none;
+            font-size: 12px;
+            color: #00E676;
+            margin-top: 5px;
+            padding-left: 5px;
+        }
+
+        /* Login Screen (Simples) */
+        #login-screen { display: none; padding: 40px 20px; text-align: center; }
+        #app-screen { display: flex; flex-direction: column; height: 100%; }
         
-        /* BOTÃO DE FOTO (Discreto) */
-        .photo-btn-container {
-            display: flex;
-            justify-content: center;
-            margin-top: 10px;
-        }
-        .btn-small-photo {
-            background: rgba(255,255,255,0.1);
-            color: #ccc;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* FOOTER (Histórico) */
-        .footer-action {
-            padding: 15px;
-            text-align: center;
-            border-top: var(--card-border);
-            background: rgba(0,0,0,0.4);
-        }
-        .link-history {
-            color: #BB86FC;
-            text-decoration: none;
-            font-size: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-        }
-
-        /* LOADING */
-        .loader {
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top: 3px solid #FF007F;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Utils */
+        .hidden { display: none !important; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        input[type="file"] { display: none; }
-        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="brand">CIA • Dr. Renan Botelho</div>
-</header>
-
-<div class="container">
-
     <div id="login-screen">
-        <h2 style="text-align: center; margin-bottom: 5px;">Acesse a Inteligência</h2>
-        <p style="text-align: center; color: var(--text-sec); margin-bottom: 30px; font-size: 14px;">
-            Sua consultora de rótulos e compras.
-        </p>
-        
-        <input type="email" id="user-email" class="input-box" placeholder="Seu e-mail de compra">
-        
-        <button class="btn btn-outline" onclick="validateUser()" id="btn-login">
-            Entrar com E-mail
-        </button>
-
-        <div style="display: flex; align-items: center; margin: 20px 0;">
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-            <span style="padding: 0 10px; color: #555; font-size: 12px;">OU</span>
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-        </div>
-
-        <button class="btn" onclick="freeTest()" id="btn-free">
-            🚀 Teste Grátis Agora
-        </button>
-
-        <button class="btn btn-text" onclick="contactSupport()">
-            Precisa de ajuda? Falar com Suporte
-        </button>
-        
-        <p id="login-msg" style="text-align: center; font-size: 13px; margin-top: 10px; min-height: 20px;"></p>
+        <h2 style="margin-bottom: 20px;">Acesso VIP</h2>
+        <input type="email" id="user-email" class="search-box" placeholder="Seu e-mail de compra" style="margin-bottom: 15px;">
+        <button onclick="validateUser()" class="send-btn" style="width:100%; height: 50px; font-weight: bold;">ENTRAR</button>
+        <p id="login-msg" style="margin-top: 15px; font-size: 14px; color: #FF007F;"></p>
     </div>
 
-    <div id="app-screen">
+    <div id="app-screen" class="hidden">
         
-        <div class="input-group">
-            <label style="display:block; color: #BB86FC; font-size: 12px; margin-bottom: 8px; font-weight: bold;">NOVA CONSULTA</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" id="search-input" class="input-box" placeholder="Deixa que eu te ajudo..." style="margin-bottom: 0;">
-                <button class="btn" onclick="sendSearch()" style="width: 60px; margin-bottom: 0; padding: 0;">
-                    ➝
-                </button>
+        <div class="top-fixed-area">
+            <div class="header-row">
+                <div class="brand">CIA • Dr. Renan Botelho</div>
+                <button class="logout-btn" onclick="logout()">Sair</button>
             </div>
+
+            <div class="search-container">
+                <input type="text" id="search-input" class="search-box" placeholder="Pergunte ou envie foto...">
+                
+                <div class="input-icons">
+                    <button class="icon-btn" onclick="document.getElementById('file-upload').click()" id="cam-btn">
+                        <svg viewBox="0 0 24 24"><path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/><path d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="3.2"/></svg>
+                    </button>
+                    <input type="file" id="file-upload" accept="image/*" onchange="fileSelected(this)" class="hidden">
+
+                    <button class="icon-btn" id="mic-btn" onclick="toggleAudio()">
+                        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.66 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+                    </button>
+
+                    <button class="send-btn" onclick="sendData()">
+                        <svg viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+            <div id="attachment-indicator">📷 Imagem anexada</div>
         </div>
 
-        <div class="photo-btn-container">
-            <button class="btn-small-photo" onclick="document.getElementById('file-upload').click()">
-                📷 Capricha na Foto
-            </button>
-            <input type="file" id="file-upload" accept="image/*" onchange="handleImage(this)">
-        </div>
+        <div class="content-area">
+            
+            <div id="tips-placeholder">
+                <div style="margin-bottom: 20px; opacity: 0.5;">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="white"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                </div>
+                <div class="tip-title">Dica para análise perfeita</div>
+                <p class="tip-text">
+                    Envie sua mensagem ou uma foto.<br><br>
+                    Se for foto: <span class="tip-highlight">Boa luz. Sem reflexo.</span><br>
+                    Aproxime para que a lista de <span class="tip-highlight">INGREDIENTES</span> fique bem legível.
+                </p>
+            </div>
 
-        <div id="result-container" class="chat-area hidden">
             <div id="result-content" class="chat-bubble"></div>
         </div>
-
     </div>
-
-</div>
-
-<div class="footer-action" id="footer-area" style="display: none;">
-    <a href="#" class="link-history" onclick="getHistory()">
-        🕒 Ver meu histórico de conversas
-    </a>
-</div>
 
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    
-    // --- CONFIGURAÇÃO ---
     const WEBHOOK = 'https://rbo3wh.anderfesouza.com.br/webhook/alunablack';
-    // --------------------
 
-    // Inicialização
+    // Estado local
+    let currentImageBase64 = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let isRecording = false;
+
+    // --- INICIALIZAÇÃO ---
     document.addEventListener("DOMContentLoaded", () => {
-        const savedEmail = localStorage.getItem('cia_user_email');
-        if (savedEmail) {
-            document.getElementById('user-email').value = savedEmail;
-            // Opcional: Validar automático ou pedir clique
-            validateUser(); 
+        const email = localStorage.getItem('cia_user_email');
+        if (email) {
+            document.getElementById('user-email').value = email;
+            showScreen('app');
         } else {
             showScreen('login');
         }
     });
 
-    function showScreen(screenName) {
+    function showScreen(screen) {
         document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app-screen').style.display = 'none';
-        document.getElementById('footer-area').style.display = 'none';
-
-        if(screenName === 'login') {
-            document.getElementById('login-screen').style.display = 'block';
-        } else {
-            document.getElementById('app-screen').style.display = 'block';
-            document.getElementById('footer-area').style.display = 'block';
-        }
-    }
-
-    // --- AÇÕES DO USUÁRIO ---
-
-    // 1. Validar Email (Login)
-    async function validateUser() {
-        const email = document.getElementById('user-email').value;
-        if (!email.includes('@')) return showMsg("Digite um e-mail válido.", "red");
-
-        setLoading('btn-login', true);
-
-        try {
-            const user = tg.initDataUnsafe.user || { id: 'web_test', first_name: 'Visitante' };
-            
-            const res = await sendToN8N({
-                action: 'validate_user',
-                email: email,
-                telegram_id: user.id,
-                name: user.first_name
-            });
-
-            if (res.active) {
-                localStorage.setItem('cia_user_email', email);
-                showScreen('app');
-            } else {
-                showMsg("Assinatura não encontrada.", "red");
-            }
-        } catch (e) {
-            showMsg("Erro de conexão.", "red");
-        }
-        setLoading('btn-login', false);
-    }
-
-    // 2. Teste Grátis
-    async function freeTest() {
-        setLoading('btn-free', true);
-        try {
-            const user = tg.initDataUnsafe.user || { id: 'web_test', first_name: 'Visitante' };
-            
-            await sendToN8N({
-                action: 'free_test',
-                telegram_id: user.id,
-                name: user.first_name
-            });
-            
-            // Libera o acesso temporário (ou conforme lógica do n8n)
-            showScreen('app');
-            // Opcional: Colocar um aviso que é modo teste
-        } catch (e) {
-            showMsg("Erro ao iniciar teste.", "red");
-        }
-        setLoading('btn-free', false);
-    }
-
-    // 3. Suporte
-    function contactSupport() {
-        tg.openTelegramLink('https://t.me/suportepef360_bot');
-    }
-
-    // 4. Nova Consulta (Texto)
-    async function sendSearch() {
-        const query = document.getElementById('search-input').value;
-        if (!query) return;
-
-        displayResponse("Consultando a CIA...", true);
+        document.getElementById('app-screen').classList.add('hidden');
         
-        try {
-            const email = localStorage.getItem('cia_user_email') || 'modo_teste';
-            const user = tg.initDataUnsafe.user || { id: 'web_test' };
-
-            const res = await sendToN8N({
-                action: 'consult_ai',
-                type: 'text',
-                query: query,
-                email: email,
-                telegram_id: user.id
-            });
-            
-            displayResponse(res.ai_response);
-            document.getElementById('search-input').value = ""; // Limpa para próxima
-        } catch (e) {
-            displayResponse("Houve um erro na comunicação com a IA.");
-        }
+        if(screen === 'login') document.getElementById('login-screen').style.display = 'block';
+        else document.getElementById('app-screen').classList.remove('hidden');
     }
 
-    // 5. Enviar Foto
-    async function handleImage(input) {
+    // --- LÓGICA DE ARQUIVOS (FOTO) ---
+    function fileSelected(input) {
         if (input.files && input.files[0]) {
             const file = input.files[0];
             const reader = new FileReader();
             
-            reader.onload = async function(e) {
-                displayResponse("Analisando rótulo...", true);
-                try {
-                    const email = localStorage.getItem('cia_user_email') || 'modo_teste';
-                    const user = tg.initDataUnsafe.user || { id: 'web_test' };
-
-                    const res = await sendToN8N({
-                        action: 'consult_ai',
-                        type: 'image',
-                        image: e.target.result, // Base64
-                        email: email,
-                        telegram_id: user.id
-                    });
-                    
-                    displayResponse(res.ai_response);
-                } catch (err) {
-                    displayResponse("Erro ao enviar imagem.");
-                }
+            reader.onload = function(e) {
+                currentImageBase64 = e.target.result; // Salva o base64
+                // Visual Update
+                document.getElementById('cam-btn').classList.add('active');
+                document.getElementById('attachment-indicator').style.display = 'block';
+                document.getElementById('search-input').placeholder = "Adicione uma pergunta à foto...";
             };
             reader.readAsDataURL(file);
-            
-            // --- A CORREÇÃO ESTÁ AQUI EMBAIXO ---
-            input.value = ''; // Reseta o campo para permitir novo upload imediato
         }
     }
 
-    // 6. Ver Histórico
-    async function getHistory() {
-        displayResponse("Buscando histórico...", true);
+    // --- LÓGICA DE ÁUDIO ---
+    async function toggleAudio() {
+        const btn = document.getElementById('mic-btn');
+
+        if (!isRecording) {
+            // Iniciar Gravação
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                
+                mediaRecorder.start();
+                isRecording = true;
+                btn.classList.add('recording');
+                document.getElementById('search-input').placeholder = "Gravando áudio... Clique para parar.";
+            } catch (err) {
+                alert("Permissão de microfone necessária.");
+            }
+        } else {
+            // Parar e Enviar
+            mediaRecorder.stop();
+            isRecording = false;
+            btn.classList.remove('recording');
+            document.getElementById('search-input').placeholder = "Processando áudio...";
+            
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                // Converter Blob para Base64
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = async () => {
+                    const base64Audio = reader.result;
+                    // Envia como tipo Áudio
+                    sendToBackend({ type: 'audio', content: base64Audio });
+                };
+            };
+        }
+    }
+
+    // --- LÓGICA DE ENVIO PRINCIPAL ---
+    async function sendData() {
+        const text = document.getElementById('search-input').value;
+        
+        // Cenário 1: Tem Foto (com ou sem texto)
+        if (currentImageBase64) {
+            sendToBackend({ 
+                type: 'image', 
+                content: currentImageBase64, 
+                caption: text // Texto vai como legenda
+            });
+            return;
+        }
+
+        // Cenário 2: Texto Puro
+        if (text.trim() !== "") {
+            sendToBackend({ 
+                type: 'text', 
+                content: text 
+            });
+            return;
+        }
+    }
+
+    async function sendToBackend(payload) {
+        // UI Feedback
+        document.getElementById('tips-placeholder').style.display = 'none';
+        const resultDiv = document.getElementById('result-content');
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = '<div style="text-align:center; opacity:0.7;">Analysando com Dr. Renan...</div>';
+        
+        // Limpar inputs
+        document.getElementById('search-input').value = "";
+        document.getElementById('attachment-indicator').style.display = 'none';
+        document.getElementById('cam-btn').classList.remove('active');
+        currentImageBase64 = null; // Reset imagem
+
         try {
             const user = tg.initDataUnsafe.user || { id: 'web_test' };
             const email = localStorage.getItem('cia_user_email');
 
-            const res = await sendToN8N({
-                action: 'chat_history',
+            // Monta o JSON final pro n8n
+            const body = {
+                action: 'consult_ai',
                 telegram_id: user.id,
-                email: email
+                email: email,
+                type: payload.type, // 'text', 'image', 'audio'
+                data: payload.content, // O conteúdo principal (texto ou base64)
+                caption: payload.caption || "" // Legenda da foto se houver
+            };
+
+            const response = await fetch(WEBHOOK, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
             });
-
-            displayResponse(res.history_text || "Histórico vazio ou indisponível.");
-        } catch (e) {
-            displayResponse("Erro ao buscar histórico.");
-        }
-    }
-
-    // --- UTILITÁRIOS ---
-
-    async function sendToN8N(data) {
-        const response = await fetch(WEBHOOK, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        return await response.json();
-    }
-
-    function displayResponse(text, isLoading = false) {
-        const container = document.getElementById('result-container');
-        const content = document.getElementById('result-content');
-        
-        container.classList.remove('hidden');
-        
-        if (isLoading) {
-            content.innerHTML = '<div class="loader"></div> ' + text;
-        } else {
-            // Formatação Simples de Markdown para HTML
-            let formatted = text
-                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Negrito
-                .replace(/\n/g, '<br>'); // Quebra de linha
+            const data = await response.json();
             
-            content.innerHTML = formatted;
+            // Formata Resposta
+            let formatted = (data.ai_response || "Sem resposta.")
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            resultDiv.innerHTML = formatted;
+
+        } catch (e) {
+            resultDiv.innerHTML = "Erro ao conectar. Tente novamente.";
         }
     }
 
-    function showMsg(msg, color) {
-        const el = document.getElementById('login-msg');
-        el.innerText = msg;
-        el.style.color = color === 'red' ? '#FF5252' : '#00E676';
+    // --- LOGIN / LOGOUT ---
+    async function validateUser() {
+        const email = document.getElementById('user-email').value;
+        const btn = document.querySelector('#login-screen .send-btn');
+        if(!email.includes('@')) return;
+
+        btn.innerText = "...";
+        try {
+            const user = tg.initDataUnsafe.user || { id: 'test' };
+            const res = await fetch(WEBHOOK, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action: 'validate_user', email: email, telegram_id: user.id })
+            });
+            const data = await res.json();
+            
+            if(data.active) {
+                localStorage.setItem('cia_user_email', email);
+                showScreen('app');
+            } else {
+                document.getElementById('login-msg').innerText = "Acesso não encontrado.";
+            }
+        } catch(e) {
+            alert("Erro de conexão");
+        }
+        btn.innerText = "ENTRAR";
     }
 
-    function setLoading(btnId, isLoading) {
-        const btn = document.getElementById(btnId);
-        if(isLoading) {
-            btn.dataset.originalText = btn.innerText;
-            btn.innerHTML = '<div class="loader"></div>';
-            btn.disabled = true;
-        } else {
-            btn.innerText = btn.dataset.originalText;
-            btn.disabled = false;
-        }
+    function logout() {
+        localStorage.removeItem('cia_user_email');
+        location.reload();
     }
 </script>
 </body>
