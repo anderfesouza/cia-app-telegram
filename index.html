@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIA - Consultora IA</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-color: #1E1E1E;
+            --accent-color: #BB86FC;
+            --error-color: #CF6679;
+            --text-color: #FFFFFF;
+        }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container { width: 100%; max-width: 400px; }
+        
+        /* Controle de Telas */
+        #email-screen, #app-screen, #sales-screen { display: none; }
+        
+        .btn {
+            background-color: var(--accent-color);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            width: 100%;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
+        .btn:active { opacity: 0.8; }
+        
+        .input-box {
+            background-color: var(--card-color);
+            border: 1px solid #333;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        
+        .card {
+            background-color: var(--card-color);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            text-align: center;
+        }
+
+        h2 { margin-top: 0; font-size: 20px; margin-bottom: 15px; }
+        p { color: #ccc; line-height: 1.5; }
+        
+        #result-area { 
+            white-space: pre-wrap; 
+            text-align: left; 
+            margin-top: 20px; 
+            padding: 10px; 
+            border-left: 2px solid var(--accent-color);
+        }
+        
+        .error-msg { color: var(--error-color); font-size: 14px; display: none; margin-bottom: 10px; }
+
+        input[type="file"] { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="email-screen">
+        <div class="card">
+            <h2>Bem-vindo(a)</h2>
+            <p>Para acessar a CIA, digite o e-mail utilizado na compra.</p>
+            
+            <input type="email" id="user-email" class="input-box" placeholder="seu@email.com">
+            <p id="login-error" class="error-msg">E-mail não encontrado ou assinatura inativa.</p>
+            
+            <button class="btn" id="btn-login" onclick="validateUser()">Entrar</button>
+        </div>
+    </div>
+
+    <div id="app-screen">
+        <div class="card" style="text-align: left;">
+            <p style="font-size: 12px; color: #666; margin: 0;">Logado como: <span id="display-email"></span> <a href="#" onclick="logout()" style="color: #BB86FC;">(Sair)</a></p>
+        </div>
+
+        <div class="card">
+            <h2>Consultar Ingrediente</h2>
+            <input type="text" id="search-input" class="input-box" placeholder="Ex: Maltodextrina">
+            <button class="btn" onclick="sendSearch()">Pesquisar</button>
+        </div>
+
+        <div class="card">
+            <h2>Ler Rótulo</h2>
+            <p style="font-size:14px;">Envie uma foto da lista de ingredientes.</p>
+            <button class="btn" onclick="document.getElementById('file-upload').click()">📷 Tirar Foto / Upload</button>
+            <input type="file" id="file-upload" accept="image/*" onchange="handleImage(this)">
+        </div>
+
+        <div id="result-area"></div>
+    </div>
+
+    <div id="sales-screen">
+        <div class="card">
+            <h2>Acesso Restrito</h2>
+            <p>Este e-mail não possui uma assinatura ativa da CIA.</p>
+            <button class="btn" onclick="openSalesPage()">Quero Assinar</button>
+            <button class="btn" style="background-color: transparent; color: #fff; border: 1px solid #333;" onclick="showLogin()">Tentar outro e-mail</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand(); 
+
+    // --- CONFIGURAÇÃO ---
+    const N8N_WEBHOOK_URL = 'https://rbo3wh.anderfesouza.com.br/webhook/alunablack';
+    // --------------------
+
+    // Ao carregar, verifica se já tem email salvo no celular do usuário
+    document.addEventListener("DOMContentLoaded", () => {
+        const savedEmail = localStorage.getItem('cia_user_email');
+        if (savedEmail) {
+            document.getElementById('user-email').value = savedEmail;
+            validateUser(); // Tenta validar automático se já tiver salvo
+        } else {
+            showLogin();
+        }
+    });
+
+    function showLogin() {
+        hideAll();
+        document.getElementById('email-screen').style.display = 'block';
+    }
+
+    function hideAll() {
+        document.getElementById('email-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'none';
+        document.getElementById('sales-screen').style.display = 'none';
+    }
+
+    // 1. FUNÇÃO DE VALIDAÇÃO (LOGIN)
+    async function validateUser() {
+        const email = document.getElementById('user-email').value;
+        const btn = document.getElementById('btn-login');
+        const errorMsg = document.getElementById('login-error');
+
+        if (!email.includes('@')) {
+            alert("Por favor, digite um e-mail válido.");
+            return;
+        }
+
+        // Feedback visual
+        btn.innerText = "Verificando...";
+        btn.disabled = true;
+        errorMsg.style.display = 'none';
+
+        try {
+            const user = tg.initDataUnsafe.user; 
+            const telegramId = user ? user.id : 'web-user'; // Fallback se testar no navegador
+
+            const response = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'validate_user', 
+                    email: email,
+                    telegram_id: telegramId
+                })
+            });
+            
+            const data = await response.json();
+
+            if (data.active === true) {
+                // SUCESSO
+                localStorage.setItem('cia_user_email', email); // Salva para próxima vez
+                document.getElementById('display-email').innerText = email;
+                hideAll();
+                document.getElementById('app-screen').style.display = 'block';
+            } else {
+                // FALHA (Manda pra venda ou erro)
+                hideAll();
+                document.getElementById('sales-screen').style.display = 'block';
+            }
+
+        } catch (error) {
+            alert("Erro de conexão. Verifique sua internet.");
+            showLogin();
+        } finally {
+            btn.innerText = "Entrar";
+            btn.disabled = false;
+        }
+    }
+
+    function logout() {
+        localStorage.removeItem('cia_user_email');
+        document.getElementById('user-email').value = '';
+        document.getElementById('result-area').innerText = '';
+        showLogin();
+    }
+
+    function openSalesPage() {
+        tg.openLink('SEU_LINK_DE_PAGAMENTO_AQUI');
+    }
+
+    // 2. BUSCA (TEXTO)
+    async function sendSearch() {
+        const query = document.getElementById('search-input').value;
+        const email = localStorage.getItem('cia_user_email'); // Manda o email junto para segurança
+        if(!query) return;
+
+        document.getElementById('result-area').innerText = "Analisando base de conhecimento...";
+
+        try {
+            const response = await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'consult_ai', 
+                    type: 'text',
+                    query: query,
+                    email: email 
+                })
+            });
+            const data = await response.json();
+            document.getElementById('result-area').innerText = data.ai_response;
+        } catch (e) {
+            document.getElementById('result-area').innerText = "Erro ao consultar a CIA.";
+        }
+    }
+
+    // 3. SCANNER (IMAGEM)
+    async function handleImage(input) {
+        const email = localStorage.getItem('cia_user_email');
+
+        if (input.files && input.files[0]) {
+            const file = input.files[0];
+            const reader = new FileReader();
+            
+            reader.onload = async function(e) {
+                const base64Image = e.target.result;
+                document.getElementById('result-area').innerText = "Lendo rótulo e analisando...";
+
+                try {
+                    const response = await fetch(N8N_WEBHOOK_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                            action: 'consult_ai', 
+                            type: 'image',
+                            image: base64Image, 
+                            email: email
+                        })
+                    });
+                    const data = await response.json();
+                    document.getElementById('result-area').innerText = data.ai_response;
+                } catch (e) {
+                    document.getElementById('result-area').innerText = "Erro ao processar imagem.";
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+</body>
+</html>
