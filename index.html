@@ -57,7 +57,7 @@
             font-size: 12px; cursor: pointer; text-decoration: underline;
         }
 
-        /* --- BARRA DE PESQUISA (FLEXBOX) --- */
+        /* --- BARRA DE PESQUISA --- */
         .search-wrapper {
             background: var(--input-bg);
             border: 1px solid var(--border-color);
@@ -110,7 +110,7 @@
             align-items: center;
             justify-content: center;
             transition: 0.2s;
-            font-size: 22px; /* Tamanho para o emoji */
+            font-size: 22px; 
         }
         .icon-btn svg { fill: currentColor; width: 24px; height: 24px; }
         .icon-btn.active { color: #FF007F; background: rgba(255, 0, 127, 0.1); }
@@ -147,14 +147,13 @@
             align-items: center;
         }
         
-        /* NOVA CLASSE PARA O AVATAR */
         .cia-avatar {
             width: 100px;
             height: 100px;
             border-radius: 50%;
             object-fit: cover;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(189, 0, 255, 0.3); /* Sombra roxa suave */
+            box-shadow: 0 4px 15px rgba(189, 0, 255, 0.3);
         }
 
         .tip-highlight { color: #BB86FC; }
@@ -170,7 +169,8 @@
             display: none;
             border: 1px solid rgba(255,255,255,0.05);
         }
-        .chat-bubble strong { color: #FF007F; font-weight: 700; }
+        /* CORREÇÃO: Negrito agora é Branco (herda do pai) e não mais rosa */
+        .chat-bubble strong { color: #FFFFFF; font-weight: 700; }
 
         #attachment-indicator {
             display: none;
@@ -257,7 +257,6 @@
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
-    // SEU WEBHOOK
     const WEBHOOK = 'https://rbo3wh.anderfesouza.com.br/webhook/alunablack';
 
     let currentImageBase64 = null;
@@ -283,6 +282,8 @@
     function checkEnter(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
+            // CORREÇÃO: Força o teclado a fechar no Enter
+            document.getElementById('search-input').blur(); 
             sendData();
         }
     }
@@ -305,7 +306,7 @@
                 inputBox.placeholder = "Adicione uma pergunta à foto...";
                 
                 input.value = ''; 
-                inputBox.focus();
+                // CORREÇÃO: REMOVIDO inputBox.focus() para não abrir teclado
             };
             reader.readAsDataURL(file);
         }
@@ -339,7 +340,7 @@
                 reader.onloadend = async () => {
                     sendToBackend({ type: 'audio', content: reader.result });
                     inputBox.placeholder = "Pergunte ou envie foto...";
-                    inputBox.focus();
+                    // CORREÇÃO: REMOVIDO inputBox.focus() para não abrir teclado
                 };
             };
         }
@@ -349,6 +350,9 @@
         const textField = document.getElementById('search-input');
         const text = textField.value;
         
+        // Fecha teclado explicitamente (mobile UX)
+        textField.blur(); 
+
         if (!currentImageBase64 && text.trim() === "") return;
 
         const payload = currentImageBase64 
@@ -372,7 +376,8 @@
         document.getElementById('cam-btn').classList.remove('active');
         currentImageBase64 = null; 
         
-        textField.focus();
+        // CORREÇÃO: REMOVIDO textField.focus() para manter teclado fechado
+        // O usuário clica na caixa se quiser falar de novo.
 
         try {
             const user = tg.initDataUnsafe.user || { id: 'web_test' };
