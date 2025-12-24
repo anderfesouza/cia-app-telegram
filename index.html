@@ -57,14 +57,13 @@
             font-size: 12px; cursor: pointer; text-decoration: underline;
         }
 
-        /* --- NOVA BARRA DE PESQUISA (FLEXBOX) --- */
-        /* A caixa cinza agora é um container que segura tudo */
+        /* --- BARRA DE PESQUISA (FLEXBOX) --- */
         .search-wrapper {
             background: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 24px;
             display: flex;
-            align-items: flex-end; /* Alinha itens na base */
+            align-items: flex-end;
             padding: 8px;
             transition: border-color 0.3s;
             min-height: 54px;
@@ -75,31 +74,29 @@
             border-color: #bd00ff;
         }
 
-        /* O Input de texto agora ocupa o espaço restante */
         .search-box {
             background: transparent;
             border: none;
             color: white;
             font-size: 16px;
             width: 100%;
-            flex: 1; /* Ocupa todo espaço disponível */
+            flex: 1;
             outline: none;
             resize: none;
             overflow: hidden;
             max-height: 120px;
             font-family: inherit;
             line-height: 1.4;
-            padding: 10px 5px 10px 10px; /* Espaço interno do texto */
-            margin-bottom: 2px; /* Ajuste fino alinhamento */
+            padding: 10px 5px 10px 10px;
+            margin-bottom: 2px;
         }
 
-        /* Container dos ícones (Lado direito fixo) */
         .action-buttons {
             display: flex;
             align-items: center;
             gap: 4px;
-            padding-bottom: 4px; /* Alinha com o texto */
-            flex-shrink: 0; /* Não encolhe */
+            padding-bottom: 4px;
+            flex-shrink: 0;
         }
 
         .icon-btn {
@@ -110,9 +107,12 @@
             border: none;
             cursor: pointer;
             display: flex;
+            align-items: center;
+            justify-content: center;
             transition: 0.2s;
+            font-size: 22px; /* Tamanho para o emoji */
         }
-        .icon-btn svg { fill: currentColor; }
+        .icon-btn svg { fill: currentColor; width: 24px; height: 24px; }
         .icon-btn.active { color: #FF007F; background: rgba(255, 0, 127, 0.1); }
         .icon-btn.recording { color: #FF0000; animation: pulse 1.5s infinite; }
 
@@ -142,7 +142,21 @@
             text-align: center;
             color: var(--text-sec);
             margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
+        
+        /* NOVA CLASSE PARA O AVATAR */
+        .cia-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(189, 0, 255, 0.3); /* Sombra roxa suave */
+        }
+
         .tip-highlight { color: #BB86FC; }
 
         .chat-bubble {
@@ -209,12 +223,12 @@
                 
                 <div class="action-buttons">
                     <button class="icon-btn" onclick="triggerFile()" id="cam-btn">
-                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M20 4h-3.17L15 2H9L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-5 11.5V13H9v2.5L5.5 12 9 8.5V11h6V8.5l3.5 3.5-3.5 3.5z"/><path d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="3.2"/></svg>
+                        📷
                     </button>
                     <input type="file" id="file-upload" accept="image/*" onchange="fileSelected(this)" class="hidden">
 
                     <button class="icon-btn" id="mic-btn" onclick="toggleAudio()">
-                        <svg viewBox="0 0 24 24" width="24" height="24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.66 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
+                        <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.66 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/><path d="M0 0h24v24H0z" fill="none"/></svg>
                     </button>
 
                     <button class="send-btn" onclick="sendData()">
@@ -228,9 +242,8 @@
 
         <div class="content-area">
             <div id="tips-placeholder">
-                <div style="margin-bottom: 20px; opacity: 0.5;">
-                    <svg viewBox="0 0 24 24" width="48" height="48" fill="white"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                </div>
+                <img src="Avatar CIA.png" alt="Avatar CIA" class="cia-avatar">
+                
                 <div style="font-weight: 600; margin-bottom: 10px;">Dica para análise perfeita</div>
                 <p style="font-size: 14px; line-height: 1.6; color: #8E8E93; max-width: 300px; margin: 0 auto;">
                     Se for foto: <span class="tip-highlight">Boa luz e sem reflexo.</span><br>
@@ -244,6 +257,7 @@
 <script>
     const tg = window.Telegram.WebApp;
     tg.expand();
+    // SEU WEBHOOK
     const WEBHOOK = 'https://rbo3wh.anderfesouza.com.br/webhook/alunablack';
 
     let currentImageBase64 = null;
@@ -251,7 +265,6 @@
     let audioChunks = [];
     let isRecording = false;
 
-    // --- INICIALIZAÇÃO ---
     document.addEventListener("DOMContentLoaded", () => {
         const email = localStorage.getItem('cia_user_email');
         if (email) {
@@ -262,21 +275,18 @@
         }
     });
 
-    // Auto-Resize Textarea
     function autoResize(textarea) {
         textarea.style.height = 'auto'; 
         textarea.style.height = textarea.scrollHeight + 'px';
     }
 
-    // ENTER para enviar (Correção solicitada)
     function checkEnter(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Evita pular linha
+            e.preventDefault();
             sendData();
         }
     }
 
-    // Foco e Trigger de Arquivo
     function triggerFile() {
         document.getElementById('file-upload').click();
     }
@@ -289,22 +299,18 @@
             reader.onload = function(e) {
                 currentImageBase64 = e.target.result;
                 
-                // UX Feedback
                 document.getElementById('cam-btn').classList.add('active');
                 document.getElementById('attachment-indicator').style.display = 'block';
                 const inputBox = document.getElementById('search-input');
                 inputBox.placeholder = "Adicione uma pergunta à foto...";
                 
                 input.value = ''; 
-                
-                // CORREÇÃO: Devolve o foco para digitar
                 inputBox.focus();
             };
             reader.readAsDataURL(file);
         }
     }
 
-    // Audio Logic
     async function toggleAudio() {
         const btn = document.getElementById('mic-btn');
         const inputBox = document.getElementById('search-input');
@@ -332,7 +338,6 @@
                 reader.readAsDataURL(audioBlob);
                 reader.onloadend = async () => {
                     sendToBackend({ type: 'audio', content: reader.result });
-                    // CORREÇÃO: Foco volta ao input
                     inputBox.placeholder = "Pergunte ou envie foto...";
                     inputBox.focus();
                 };
@@ -340,12 +345,11 @@
         }
     }
 
-    // Enviar Dados
     async function sendData() {
         const textField = document.getElementById('search-input');
         const text = textField.value;
         
-        if (!currentImageBase64 && text.trim() === "") return; // Não envia vazio
+        if (!currentImageBase64 && text.trim() === "") return;
 
         const payload = currentImageBase64 
             ? { type: 'image', content: currentImageBase64, caption: text }
@@ -355,7 +359,6 @@
     }
 
     async function sendToBackend(payload) {
-        // UI Reset
         document.getElementById('tips-placeholder').style.display = 'none';
         const resultDiv = document.getElementById('result-content');
         resultDiv.style.display = 'block';
@@ -363,13 +366,12 @@
         
         const textField = document.getElementById('search-input');
         textField.value = "";
-        textField.style.height = 'auto'; // Reset altura
+        textField.style.height = 'auto'; 
         
         document.getElementById('attachment-indicator').style.display = 'none';
         document.getElementById('cam-btn').classList.remove('active');
         currentImageBase64 = null; 
         
-        // Mantém foco para continuar conversando
         textField.focus();
 
         try {
@@ -402,7 +404,6 @@
         }
     }
 
-    // Login/Logout
     async function validateUser() {
         const email = document.getElementById('user-email').value;
         const btn = document.querySelector('#login-screen .send-btn');
